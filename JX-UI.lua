@@ -105,7 +105,7 @@ local Library do
         Theme =  { },
         ToClean = { },
 
-        MenuKeybind = tostring(Enum.KeyCode.RightAlt), 
+        MenuKeybind = tostring(Enum.KeyCode.RightShift), 
 
         Flags = { },
 
