@@ -3635,7 +3635,7 @@ local Library do
                 Settings:Keybind({
                     Name = "Menu Keybind",
                     Flag = "MenuBind",
-                    Default = Enum.KeyCode.RightAlt,
+                    Default = Enum.KeyCode.RightShift,
                     Callback = function(Value)
                         Library.MenuKeybind = tostring(Value)
                     end
