@@ -1,4 +1,10 @@
---Upgraded By Jianlobiano
+if getgenv().Library then
+    pcall(function()
+        getgenv().Library:Unload()
+    end)
+    task.wait(0.1)
+    getgenv().Library = nil
+end
 local Library do 
     local Workspace = game:GetService("Workspace")
     local UserInputService = game:GetService("UserInputService")
