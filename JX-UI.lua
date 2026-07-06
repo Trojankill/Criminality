@@ -5513,8 +5513,8 @@ local Library do
                 end)
             end
 
-                Items["Indicator"].Instance.Position = UDim2New(0, 0, 0, 0)
-            Items["Text"].Instance.Position = UDim2New(0, 24, 0, 0)
+                            Items["Indicator"].Instance.Position = UDim2New(0, 0, 0, 0)
+        Items["Text"].Instance.Position = UDim2New(0, 24, 0, 0)
 
             --Toggle.Section.Items["Fade"].Instance.Size = UDim2New(1, 0, 0, Toggle.Section.Items["Content"].Instance.AbsoluteSize.X - 180)
 
