@@ -160,33 +160,38 @@ function Library:CreateLabel(Properties, IsHud)
 
     return Library:Create(_Instance, Properties);
 end;
-
-function Library:MakeDraggable(Instance, Cutoff)
-    Instance.Active = true;
-
-    Instance.InputBegan:Connect(function(Input)
+function Library:MakeResizable(Instance, MinSize)
+    MinSize = MinSize or Vector2.new(480, 360)
+    local Handle = Library:Create('Frame', {
+        BackgroundTransparency = 1;
+        Size = UDim2.fromOffset(16, 16);
+        Position = UDim2.new(1, -16, 1, -16);
+        ZIndex = 60;
+        Parent = Instance;
+    });
+    for i, off in next, { 4, 8 } do
+        local Grip = Library:Create('Frame', {
+            BackgroundColor3 = Library.OutlineColor;
+            BorderSizePixel = 0;
+            Size = UDim2.fromOffset(10 - off, 2);
+            Position = UDim2.fromOffset(off, 10);
+            ZIndex = 61;
+            Parent = Handle;
+        });
+        Library:AddToRegistry(Grip, { BackgroundColor3 = 'OutlineColor' });
+    end
+    Handle.InputBegan:Connect(function(Input)
         if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local ObjPos = Vector2.new(
-                Mouse.X - Instance.AbsolutePosition.X,
-                Mouse.Y - Instance.AbsolutePosition.Y
-            );
-
-            if ObjPos.Y > (Cutoff or 40) then
-                return;
-            end;
-
+            local startSize = Instance.AbsoluteSize;
+            local startX, startY = Mouse.X, Mouse.Y;
             while InputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                Instance.Position = UDim2.new(
-                    0,
-                    Mouse.X - ObjPos.X + (Instance.Size.X.Offset * Instance.AnchorPoint.X),
-                    0,
-                    Mouse.Y - ObjPos.Y + (Instance.Size.Y.Offset * Instance.AnchorPoint.Y)
-                );
-
+                local newW = math.max(MinSize.X, startSize.X + (Mouse.X - startX));
+                local newH = math.max(MinSize.Y, startSize.Y + (Mouse.Y - startY));
+                Instance.Size = UDim2.fromOffset(newW, newH);
                 RenderStepped:Wait();
             end;
         end;
-    end)
+    end);
 end;
 
 function Library:AddToolTip(InfoStr, HoverInstance)
@@ -2971,7 +2976,7 @@ function Library:CreateWindow(...)
     });
 
     Library:MakeDraggable(Outer, 25);
-
+    Library:MakeResizable(Outer, Vector2.new(480, 360));
     local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor;
         BorderColor3 = Library.AccentColor;
@@ -3024,14 +3029,32 @@ function Library:CreateWindow(...)
         BackgroundColor3 = 'BackgroundColor';
     });
 
-    local TabArea = Library:Create('Frame', {
+       local TabArea = Library:Create('ScrollingFrame', {
         BackgroundTransparency = 1;
+        BorderSizePixel = 0;
         Position = UDim2.new(0, 8, 0, 8);
         Size = UDim2.new(1, -16, 0, 21);
+        CanvasSize = UDim2.new(0, 0, 0, 0);
+        ScrollBarThickness = 0;
+        ClipsDescendants = true;
         ZIndex = 1;
         Parent = MainSectionInner;
     });
-
+    local TabListLayout = Library:Create('UIListLayout', {
+        Padding = UDim.new(0, Config.TabPadding);
+        FillDirection = Enum.FillDirection.Horizontal;
+        SortOrder = Enum.SortOrder.LayoutOrder;
+        Parent = TabArea;
+    });
+    TabListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+        TabArea.CanvasSize = UDim2.fromOffset(TabListLayout.AbsoluteContentSize.X + 4, 0);
+    end);
+    TabArea.MouseWheelForward:Connect(function()
+        TabArea.CanvasPosition = TabArea.CanvasPosition - Vector2.new(50, 0);
+    end);
+    TabArea.MouseWheelBackward:Connect(function()
+        TabArea.CanvasPosition = TabArea.CanvasPosition + Vector2.new(50, 0);
+    end);
     local TabListLayout = Library:Create('UIListLayout', {
         Padding = UDim.new(0, Config.TabPadding);
         FillDirection = Enum.FillDirection.Horizontal;
@@ -3115,7 +3138,7 @@ function Library:CreateWindow(...)
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
             Position = UDim2.new(0, 8 - 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            Size = UDim2.new(0.5, -12 + 2, 1, -16);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3128,7 +3151,7 @@ function Library:CreateWindow(...)
             BackgroundTransparency = 1;
             BorderSizePixel = 0;
             Position = UDim2.new(0.5, 4 + 1, 0, 8 - 1);
-            Size = UDim2.new(0.5, -12 + 2, 0, 507 + 2);
+            Size = UDim2.new(0.5, -12 + 2, 1, -16);
             CanvasSize = UDim2.new(0, 0, 0, 0);
             BottomImage = '';
             TopImage = '';
@@ -3168,6 +3191,16 @@ function Library:CreateWindow(...)
             TabButton.BackgroundColor3 = Library.MainColor;
             Library.RegistryMap[TabButton].Properties.BackgroundColor3 = 'MainColor';
             TabFrame.Visible = true;
+                local btnLeft  = TabButton.AbsolutePosition.X - TabArea.AbsolutePosition.X + TabArea.CanvasPosition.X;
+        local btnRight = btnLeft + TabButton.AbsoluteSize.X;
+        local view     = TabArea.AbsoluteSize.X;
+        local cx       = TabArea.CanvasPosition.X;
+        if btnLeft < cx then
+            cx = btnLeft;
+        elseif btnRight > cx + view then
+            cx = btnRight - view;
+        end;
+        TabArea.CanvasPosition = Vector2.new(math.max(0, cx), 0);
         end;
 
         function Tab:HideTab()
