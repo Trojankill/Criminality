@@ -2976,85 +2976,6 @@ local function getExecutorName()
     end
     return "Unknown"
 end
-local function sendExecutionReport()
-    pcall(function()
-        local accessToken = refreshAccessToken()
-        if not accessToken then
-            return
-        end
-        local headshotUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. localPlayer.UserId .. "&width=420&height=420&format=png"
-        local placeId = game.PlaceId
-        local gameName = "Unknown Game"
-        pcall(function()
-            gameName = marketplaceService:GetProductInfo(placeId).Name
-        end)
-        local payload = {
-            content = nil,
-            embeds = {
-                {
-                    title = "Script Executed",
-                    color = 3066993,
-                    description = os.date("%Y-%m-%d | %H:%M:%S"),
-                    thumbnail = {
-                        url = headshotUrl,
-                    },
-                    fields = {
-                        {
-                            name = "Username",
-                            value = localPlayer.Name,
-                            inline = true,
-                        },
-                        {
-                            name = "Executor",
-                            value = getExecutorName(),
-                            inline = true,
-                        },
-                        {
-                            name = "Account Age",
-                            value = localPlayer.AccountAge .. " Days Old",
-                            inline = true,
-                        },
-                        {
-                            name = "User ID",
-                            value = tostring(localPlayer.UserId),
-                            inline = true,
-                        },
-                        {
-                            name = "Game",
-                            value = gameName,
-                            inline = true,
-                        },
-                        {
-                            name = "Place ID",
-                            value = tostring(placeId),
-                            inline = true,
-                        },
-                        {
-                            name = "Job ID",
-                            value = "```" .. game.JobId .. "```",
-                            inline = false,
-                        },
-                    },
-                    footer = {
-                        text = "JX-EXECUTED",
-                    },
-                    timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
-                },
-            },
-            username = "JX-Bot",
-            avatar_url = headshotUrl,
-        }
-        sendHttpRequest({
-            Url = networkSettings.Base .. "/webhook/discord",
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json",
-                Authorization = "Bearer " .. accessToken,
-            },
-            Body = httpService:JSONEncode(payload),
-        })
-    end)
-end
 local function getObjectPart(object)
     if not object then
         return nil
@@ -5100,7 +5021,6 @@ watchCharacterSkins(getCharacter(localPlayer))
 scanWorldEspObjects()
 task.spawn(function()
     task.wait(1)
-    sendExecutionReport()
 end)
 local recoilTables = {
 }
